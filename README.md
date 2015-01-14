@@ -6,7 +6,7 @@ Running of this script requires (curently tested versions in braces)
  - compatible xlrd (xlrd-0.9.3) and xlwt (xlwt-0.7.5) packages (http://www.python-excel.org/)
 
 Usage:
-    GeneratePelagicEbirdLists.py \"<path to looger file>\" \"<path to data sheet xls>\" \"<path to ebird file xls>\"
+    GeneratePelagicEbirdLists.py <path to looger file> <path to data sheet xls> <path to ebird file xls>
 
 Inputs
  - The data sheet in the specified format
