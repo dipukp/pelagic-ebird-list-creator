@@ -1,12 +1,12 @@
 import sys
 import csv
-import time
-from datetime import datetime, timedelta
+#import time
+from datetime import datetime, timedelta, time, date
 import operator
 import xlrd
 import xlwt
 from xlrd import open_workbook,cellname,xldate_as_tuple
-from math import radians, cos, sin, asin, sqrt
+from math import radians, cos, sin, asin, sqrt, floor
 
 class CellDetails:
         def __init__(self):
@@ -23,7 +23,7 @@ class CellDetails:
 def GetDistance(lon1, lat1, lon2, lat2):
         """
         Calculate the great circle distance between two points 
-        on the earth (specified in decimal degrees)
+        on the earth (specified in decimal degrees). Return the result in kilometers
         """
         # convert decimal degrees to radians 
         lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
@@ -55,7 +55,15 @@ def AddCellDetails(roundedLat, roundedLon, origLat, origLon, curKeyId, myTime, c
                         return 0                
                 else:
                         cellList[myKey].endTime = myTime
-                        cellList[myKey].distance += GetDistance(origLat, origLon, cellList[myKey].origLat, cellList[myKey].origLon)
+                        distance = GetDistance(origLat, origLon, cellList[myKey].origLat, cellList[myKey].origLon)
+                        if distance > 5.0:
+                                print("Looks like between 2 GPS readings [ " + cellList[myKey].origLat + "," + cellList[myKey].origLon +
+                                      "  - " + origLat + "," + origLon + " :  " + str(myTime) + " ], more than 5km displacement is being shown. \n")
+                                print("This tool considers this as an error (as pelagics are expected to be slow :) and hence aborting the processing. " +
+                                      " Please check the GPS file for correctness, remove suspicious points and re-run the tool again. \n" +
+                                      "In case you feel that this is a genuine case, contact the tool authors!\n");
+                                sys.exit(1)                                
+                        cellList[myKey].distance += distance
                         cellList[myKey].origLat = origLat
                         cellList[myKey].origLon = origLon
                         cellList[myKey].duration += 1
@@ -78,19 +86,39 @@ def InsertIntoRightCell(finalCellDataList, centrePoint, keyId, timeofSighting, s
         #       if it is not there, add the species into this cell list
         #       else, update the count
         if (keyId > 50):
-                print("Looks like some problem!!!! Key data : ", centrePoint, keyId, species, count, timeofSighting, "\n")
+                print("Looks like some problem!!!! Key data : " + str(centrePoint) + "," + str(keyId) +
+                      ", " + str(species) + ", " + str(count) + ", " + str(timeofSighting) + "\n")
                 return 1
         myKey = "[" + centrePoint + ":" + str(keyId) + "]"
         for row in finalCellDataList:
                 if(row["Cell Details"] == myKey):
                         if(timeofSighting >= row["Start Time"] and timeofSighting <= row["End Time"]):
                                 if species in row:
-                                        row[species] += count 
+                                        row[species] += count
+                                        currentRF = row[species + "-RF"] 
+                                        if(count > currentRF):
+                                                row[species + "-RF"] = GetRoundingFactor(myKey, species, count,currentRF)
                                 else:
+                                        #print (myKey + " --> " + str(timeofSighting) + ", " + str(row["Start Time"]) +
+                                        #       ", " + str(row["End Time"]) + ", " + str(species) + ", " + str(count))
                                         row[species] = count
+                                        row[species + "-RF"] = GetRoundingFactor(myKey, species,count,0)
                                 return 1        
         return 0
-        
+
+def GetRoundingFactor(myKey, species, count, currentRF):
+        #Check for rough estimates in order of 10,50,100,500,1000,5000
+        #Find the highest applicable rouding Factor
+        possibleRF = 0
+        for f in [10,50,100,500,1000,5000,1000000]:
+                if(count%f == 0):
+                     possibleRF = f
+        if(possibleRF > currentRF):
+                #print("Identified a rough estimate in cell " + myKey + ": Updating estimation scale for " + str(species) + " in this cell as " + str(possibleRF))
+                return possibleRF
+
+        return currentRF
+
 def HandleSighting(timeOfSighting, species, count, finalCellDataList, timePoints):
         # Using the time of sighting, get the details of the sighting
         # Then, use these details to find and add this sighting to the right cell list.
@@ -108,20 +136,39 @@ def HandleSighting(timeOfSighting, species, count, finalCellDataList, timePoints
                                 keyId += 1
 
 if (len(sys.argv) > 4 or len(sys.argv) < 4):
-        print("\n    Usage: GenerateList.py \"<path to looger file>\" \"<path to data sheet xls>\" \"<path to ebird file xls>\" \n\n")
+        print("\nUsage:\n\tGenerateList \"<path to loger file>\" \"<path to data sheet xls>\" \"<path to ebird file xls>\" \n")
+        print("Sample:\n\tGenerateList 24-Sep-2011_Trip1-GPS.txt Datasheet_Trip1-24-Sep-2011.xls 2011-09-24-Trip1-ebird-lists.csv \n")
         sys.exit(1)
+
+# Start Processing
+
+# Open the data sheet, get start time and end time
+wb = open_workbook(sys.argv[2])
+dataSheet = wb.sheet_by_name("Data")
+dataStartTime = time(*xlrd.xldate_as_tuple(dataSheet.cell(4,3).value, wb.datemode)[3:])
+dataEndTime = time(*xlrd.xldate_as_tuple(dataSheet.cell(5,3).value, wb.datemode)[3:])
+print ("Trip Start Time  : " + str(dataStartTime))
+print ("Trip End Time    : " + str(dataEndTime))
 
 # Read the logger file and generate continuous stream of GPS points for every minute from start time to end.
 # One key assumption is that the last GPS point in logger is after the last recorded sighing!
+
 input_file = csv.DictReader(open(sys.argv[1]))
 prevRow = None
 currentRow = {} 
 timePoints = []
+estimateDetected = 0
 for row in input_file:
         timeDiff = 0
         dt = datetime.strptime(row["time"],"%Y-%m-%dT%H:%M:%SZ")
         dt = dt.replace(second=0)
         dt = dt + timedelta(hours=5,minutes=30)
+        tripStartTime = datetime.combine(dt.date(), dataStartTime)
+        tripEndTime = datetime.combine(dt.date(), dataEndTime)
+        #print (dt, tripStartTime, tripEndTime)
+        if dt < tripStartTime or dt > tripEndTime:
+                # print ("Got a time stamp which is out of range")
+                continue
         if prevRow is not None:
                 diff = dt - prevRow["time"]
                 timeDiff = diff.total_seconds()/60
@@ -142,7 +189,7 @@ for row in input_file:
                 timePoints.append(currentRow)
                 prevRow = currentRow
 
-# Now we have the continuos GPS points. Now go throug it and separate into multiple cells
+# Now we have the continuos GPS points. Now go through it and separate into multiple cells
 # Rules used to consider a unique cell
 # - A cell is [0.1 x 0.1 degrees]
 # - A cell is considered unique for a period of 3 hours.
@@ -169,8 +216,10 @@ for entry in cellList:
 sortedCellList = sorted(tempCellList, key=lambda CellDetails: CellDetails.startTime)
 
 finalCellDataList = []
+roundingFactorList = {}
+#print("\nList candidates are:\n")
 for cell in sortedCellList:
-        print(cell.key, cell.startTime, cell.endTime)
+        #print(str(cell.key) + " -->     Start: " + str(cell.startTime) + "     End: " + str(cell.endTime))
         entry = cell.key
         if (cellList[entry].startTime == cellList[entry].endTime):
                 cellList[entry].endTime = cellList[entry].endTime + timedelta(minutes=1)
@@ -183,12 +232,11 @@ for cell in sortedCellList:
         cellData["Lat"]         = cellList[entry].roundedLat
         cellData["Lon"]         = cellList[entry].roundedLon
         finalCellDataList.append(cellData)
-        
 
-# Now open the data sheet, find the species list, and for each species, find the right cell and insert the species details into that list
-wb = open_workbook(sys.argv[2])
-dataSheet = wb.sheet_by_name("Data")
+print ("\n---------------------------------------------------------------")        
+print ("\nProcessing of Data Sheet started ...\n")
 
+# Now get details from datashee, read the species list, and for each species, find the right cell and insert the species details into that list
 state = dataSheet.cell(2,3).value
 notes = "Pelagic Survey organised by "+dataSheet.cell(8,3).value+" from "+dataSheet.cell(0,3).value+"("+dataSheet.cell(1,3).value+")"+" Weather "+dataSheet.cell(6,3).value+".Photographs available with "+dataSheet.cell(11,3).value
 allSpecies = dataSheet.cell(10,3).value
@@ -200,7 +248,7 @@ for row_index in range(dataSheet.nrows):
                 if(dataSheet.cell(row_index,0).value == "Time"):
                         dataStarted = 1
         else:
-                species = dataSheet.cell(row_index,1).value
+                species = dataSheet.cell(row_index,1).value.upper()
                 count = dataSheet.cell(row_index,2).value
                 year, month, day, hour, minute, second = xlrd.xldate_as_tuple(dataSheet.cell(row_index,0).value, wb.datemode)
                 sightingTime = datetime.strptime(str(hour) + ":" + str(minute), "%H:%M")
@@ -244,7 +292,17 @@ for row in finalCellDataList:
                 continue
         else:
                 columncnt += 1
-                sheet1.write(0, columncnt, "Pelagic HotSpot: "+ row["Lat"] + "-" + row["Lon"])
+                # Hotspot sea assumption
+                # Bay Of Bengal	>78.7	>5.9
+                # Arabian Sea	<77.5	>7.9
+                # Else default to Indian Ocean
+                if (float(row["Lon"]) > 78.7 and float(row["Lat"]) > 5.9):
+                        sheet1.write(0, columncnt, "Bay Of Bengal Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                elif (float(row["Lon"]) < 77.5 and float(row["Lat"]) > 7.9):
+                        sheet1.write(0, columncnt, "Arabian Sea Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                else:
+                        sheet1.write(0, columncnt, "Indian Ocean Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                
                 sheet1.write(1, columncnt, row["Lat"])
                 sheet1.write(2, columncnt, row["Lon"])
                 sheet1.write(3, columncnt, tripDate.strftime('%m/%d/%Y'))
@@ -279,8 +337,22 @@ for row in finalCellDataList:
                         continue 
                     elif  (key == "Duration"):
                         continue 
+                    elif ("-RF" in key):
+                        #skipping Rounding Factor
+                        continue 
                     else:
-                        sheet1.write(speciescnt, columncnt, row[key])
+                        # Apply Rounding Factor
+                        rFactor = row[key + "-RF"]
+                        finalValue = row[key]
+                        if (rFactor > 0):
+                                #print(key + " - " + str(row[key]) + ", RF=  " + str(roundingFactor))
+                                finalValue = (int(row[key]/rFactor)*rFactor)
+                                print(" --> Identified a rough estimate in the range " + str(rFactor) + "s for the species " + 
+                                      key + " in cell " + row["Lat"] + "-" + row["Lon"] + "#" + row["Start Time"].strftime('%H:%M') +
+                                      ". Final count adjusted from " + str(int(row[key])) + " to " + str(finalValue) +
+                                      " accordingly... Please take note!")
+                                estimateDetected = 1
+                        sheet1.write(speciescnt, columncnt, finalValue)
                         sheet1.write(speciescnt, 0, key)
                         speciescnt += 1
         book.save("c:\\temp\\eBirdTemp.xls")
@@ -292,3 +364,18 @@ for row in finalCellDataList:
         for rownum in range(sheet.nrows):
                 wr.writerow(sheet.row_values(rownum))
         ebird_csv_file.close()
+        
+print "\n\n... Processing of Data sheet completed !!!"
+print ("\n---------------------------------------------------------------")
+if(estimateDetected == 1):
+        print "\n\n    IMPORTANT NOTE !!! "
+        print ("    ------------------\n\nNote the messages above indicating identification of rough estimate, " +
+               "read \"False Precision\" section at http://ebird.org/content/ebird/news/counting-201/ for details.")
+        print ("\nThis is detected when the number of birds entered during a particular sighting falls exactly " +
+               "as a multipe of 10, 50, 100, 500, 1000 or 5000. If this is detected, then the count for that species " +
+               "in that cell would be updated to an estimated value to avoid False Precision. \n\nIf the original number " +
+               "was not a rough estimate, but actual, exact number, please update the resultant csv file manually!!!")
+        print ("\n---------------------------------------------------------------")
+print "\nCompleted the generation of file that can be imported to eBird."
+print "\nPlease check the ouput file -", sys.argv[3], "- for correctness before importing.\n"
+print ("---------------------------------------------------------------")
