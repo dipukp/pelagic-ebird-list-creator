@@ -138,6 +138,7 @@ def HandleSighting(timeOfSighting, species, count, finalCellDataList, timePoints
 if (len(sys.argv) > 4 or len(sys.argv) < 4):
         print("\nUsage:\n\tGenerateList \"<path to loger file>\" \"<path to data sheet xls>\" \"<path to ebird file xls>\" \n")
         print("Sample:\n\tGenerateList 24-Sep-2011_Trip1-GPS.txt Datasheet_Trip1-24-Sep-2011.xls 2011-09-24-Trip1-ebird-lists.csv \n")
+        print("\n\tIf you got this file as part of zip file form google drive, try reading the Readme.docx file in the same file to get more detailed instructions\n")
         sys.exit(1)
 
 # Start Processing
@@ -292,16 +293,16 @@ for row in finalCellDataList:
                 continue
         else:
                 columncnt += 1
-                # Hotspot sea assumption
+                # Hotspot sea/ocean selection
                 # Bay Of Bengal	>78.7	>5.9
                 # Arabian Sea	<77.5	>7.9
                 # Else default to Indian Ocean
                 if (float(row["Lon"]) > 78.7 and float(row["Lat"]) > 5.9):
-                        sheet1.write(0, columncnt, "Bay Of Bengal Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                        sheet1.write(0, columncnt, "Bay Of Bengal: "+ row["Lat"] + "N " + row["Lon"] + "E")
                 elif (float(row["Lon"]) < 77.5 and float(row["Lat"]) > 7.9):
-                        sheet1.write(0, columncnt, "Arabian Sea Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                        sheet1.write(0, columncnt, "Arabian Sea: "+ row["Lat"] + "N " + row["Lon"] + "E")
                 else:
-                        sheet1.write(0, columncnt, "Indian Ocean Pelagic HotSpot: "+ row["Lat"] + "N-" + row["Lon"] + "E")
+                        sheet1.write(0, columncnt, "Indian Ocean: "+ row["Lat"] + "N " + row["Lon"] + "E")
                 
                 sheet1.write(1, columncnt, row["Lat"])
                 sheet1.write(2, columncnt, row["Lon"])
