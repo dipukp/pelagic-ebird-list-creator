@@ -310,7 +310,7 @@ for row in finalCellDataList:
                 sheet1.write(4, columncnt, row["Start Time"].strftime('%H:%M'))
                 sheet1.write(5, columncnt, state)
                 sheet1.write(6, columncnt, "IN")
-                if (row["Distance"] == 0):
+                if (float(row["Distance"]) < 0.1):
                         sheet1.write(7, columncnt, "Stationary")
                 else:
                         sheet1.write(7, columncnt, "Traveling")
