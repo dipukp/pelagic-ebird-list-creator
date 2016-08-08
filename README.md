@@ -12,7 +12,7 @@ eBird Concepts
 --------------
 Since the listing is heavily based on eBird, it is prudent that we explain some concepts of eBird for birders who are not used to this service. These concepts are used in the newly devised protocol and hence of relevance here.
 
-Hotspot: Defined as any public area for birding. Hotspots enable clubbing data from multiple trips by multiple people to analyse data as clusters. See here for more details http://help.ebird.org/customer/portal/articles/1006824-what-is-an-ebird-hotspot-
+Hotspot: Defined as any public area for birding. Hotspots enable clubbing data from multiple trips by multiple people to analyse data as clusters. See here for more details http://help.ebird.org/customer/portal/articles/1006824-what-is-an-ebird-hotspot
 
 Complete Lists: eBird has a field which can indicate if all the species which a bird-watcher can identify were listed or not. If this question is answered in affirmative, then it is termed as a complete list. Complete lists are considered excellent for bird density analysis as it provides absence data in addition to presence. Please see below link for more details http://help.ebird.org/customer/portal/articles/1006361-are-you-reporting-all-species.
 
@@ -48,15 +48,20 @@ Here is a worked out example showing how the lists can be created for a hypothet
 
 Summary of generated lists (The actual hotspot naming will be based on the coordinates and the name of the sea/ocean):
 
-            Hotspot    Start Time    End Time    Duration    Protocol      Complete List
-                                                 (minutes)
+Hotspot    Start Time    End Time    Duration(min)    Protocol      Complete List
 
 List 1      1          11:00         11:04        5          Traveling     No
+
 List 2      2          11:05         11:29        25         Traveling     Yes
+
 List 3      1          11:30         12:29        60         Traveling     Yes
+
 List 4      3          12:30         15:29        180        Traveling     Yes
+
 List 5      3          15:30         16:29        60         Traveling     Yes
+
 List 6      4          16:30         17:29        60         Traveling     Yes
+
 List 7      1          17:35         18:00        25         Traveling     Yes
 
 
