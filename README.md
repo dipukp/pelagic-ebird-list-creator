@@ -22,29 +22,39 @@ Principles & Protocol
 ---------------------
 In the sea, a 10 km distance band was found reasonable for pelagic bird data analysis in India - distribution pattern does not change more drastically than that (compared to land based birding where the habitat change can be much drastic with such a distance band). Hence, the offshore/pelagic water can be divided into cells of 0.1 x 0.1 degree - roughly 11 km x 11 km. Every Lat/Long with a single decimal point can be considered as an eBird hotspot (e.g. 75.3, 12.1). All observations centered on such a cell of size 0.1 x 0.1 degree will go under that eBird hotspot.
 
-With this definition in place, the following axioms were added.
-●	Each bird sighting can be uniquely assigned to a cell (hotspot)
-●	Each trip can be subdivided into multiple smaller lists based on cells where the boat was present.
-●	Lists can be generated for each cell based on the following additional criteria that provides the right resolution for subdividing the time spent in each cell.
-    ○	Lists with duration < 10 minutes and 
-        ■	has zero birds are dropped (i.e. no lists just for the sake of lists).
-        ■	has at least one bird 
-            ●	will have "All Species Reported" in eBird set to "No" (i.e. it is unlikely that you noticed all pelagic species in such a short duration).
-            ●	and displacement < 0.1 km will have eBird Protocol = Stationary (i.e. boat was roughly stationary, say it was anchored)
-    ○	Lists with duration > 10 minutes and 
-        ■	displacement < 0.1 km will have eBird Protocol = Stationary.
-        ■	displacement ≥ 0.1 km  will have eBird Protocol = Traveling
-    ○	A single list will have a max cutoff of 3 hours as time (Eg: if you stay in the same cell for a long duration, it will have multiple lists with each list maxing out at 3 hour).
-    ○	If there are rough counts in the data sheet (e.g. 100 birds), the total number of birds in a given cell are adjusted to avoid "false precision" (See http://ebird.org/content/ebird/news/counting-201/)
+With this definition in place, the following axioms were added  
+<ul>
+    <li>Each bird sighting can be uniquely assigned to a cell (hotspot) </li>
+    <li>Each trip can be subdivided into multiple smaller lists based on cells where the boat was present </li>
+    <li>Lists can be generated for each cell based on the following additional criteria that provides the right resolution for subdividing the time spent in each cell </li>
+    <ul>
+        <li> Lists with duration < 10 minutes and </li>  
+        <ul>
+            <li> has zero birds are dropped (i.e. no lists just for the sake of lists) </li>
+            <li>has at least one bird </li>
+            <ul>	
+                <li>will have "All Species Reported" in eBird set to "No" (i.e. it is unlikely that you noticed all pelagic species in such a short duration) </li>  
+                <li>and displacement < 0.1 km will have eBird Protocol = Stationary (i.e. boat was roughly stationary, say it was anchored)</li>
+            </ul>
+        </ul>
+        <li>Lists with duration > 10 minutes and </li>
+        <ul>
+            <li>displacement < 0.1 km will have eBird Protocol = Stationary </li> 
+            <li>displacement ≥ 0.1 km  will have eBird Protocol = Traveling </li>
+        </ul>
+        <li> A single list will have a max cutoff of 3 hours as time (Eg: if you stay in the same cell for a long duration, it will have multiple lists with each list maxing out at 3 hour) </li> 
+        <li>If there are rough counts in the data sheet (e.g. 100 birds), the total number of birds in a given cell are adjusted to avoid "false precision" (See http://ebird.org/content/ebird/news/counting-201/) </li>
+    </ul>
+</ul>
 
-Here is a worked out example showing how the lists can be created for a hypothetical trip using this protocol (Each list will contain the list of birds sighted during that duration).
-  ●	Entered Cell/Hotspot 1 at 11:00 (few birds were seen)
-  ●	Entered Cell/Hotspot 2 at 11:05 
-  ●	Entered Cell/Hotspot 1 again at 11:30
-  ●	Entered Cell/Hotspot 3 at 12:30
-  ●	Entered Cell/Hotspot 4 at 16:30
-  ●	Entered Cell/Hotspot 5 at 17:30 (no birds seen)
-  ●	Entered Cell/Hotspot 1 at 17:35, trip ends at 18:00
+Here is a worked out example showing how the lists can be created for a hypothetical trip using this protocol (Each list will contain the list of birds sighted during that duration)  
+* Entered Cell/Hotspot 1 at 11:00 (few birds were seen)  
+* Entered Cell/Hotspot 2 at 11:05   
+* Entered Cell/Hotspot 1 again at 11:30  
+* Entered Cell/Hotspot 3 at 12:30  
+* Entered Cell/Hotspot 4 at 16:30  
+* Entered Cell/Hotspot 5 at 17:30 (no birds seen)  
+* Entered Cell/Hotspot 1 at 17:35, trip ends at 18:00  
 
 Summary of generated lists (The actual hotspot naming will be based on the coordinates and the name of the sea/ocean):
 
@@ -70,30 +80,42 @@ Protocol Execution
 Certainly the protocol looks extremely complex on first look. However, all the complexity is subsumed in a freely downloadable python script (https://github.com/dipukp/pelagic-ebird-list-creator) which automatically generates these lists in a format that is supported by eBird for data uploads. Hence, the actual process of data recording and listing is much simpler for a pelagic birder. The steps are detailed as below.
 
 Materials:
-1.	A GPS enabled Android phone with GPSLogger software installed. This can be installed free from https://play.google.com/store/apps/details?id=com.mendhak.gpslogger&hl=en
-    a.	Configure GPSLogger to 
-        i.	output GPS coordinates in .txt format
-        ii.	set the interval of logging as “every 60 seconds”
-        iii.	set the location source as Device GPS only (as the location from Wifi and Mobile towers may be coarse and will generate inaccurate locations)
-        [The smartphone Location Services can also be configured to use only the device GPS as the sole provider, and not use the Wifi and Mobile towers]
+<ol>
+    <li> A GPS enabled Android phone with GPSLogger software installed. This can be installed free from https://play.google.com/store/apps/details?id=com.mendhak.gpslogger&hl=en </li>
+    <ol>
+        <li> Configure GPSLogger to </li>
+        <ol>
+            <li> output GPS coordinates in .txt format </li>
+            <li> set the interval of logging as “every 60 seconds” </li>
+            <li> set the location source as Device GPS only (as the location from Wifi and Mobile towers may be coarse and will generate inaccurate locations)
+        [The smartphone Location Services can also be configured to use only the device GPS as the sole provider, and not use the Wifi and Mobile towers] </li>
+        </ol>
+    </ol>
 Note: Actually, the GPSLogger is not a mandatory requirement, but the actual requirement is a comma separated text file containing the following information in a specific format for each minute of the trip - Time of recording, Latitude and Longitude. The samples which show the actual format are present at https://github.com/dipukp/pelagic-ebird-list-creator. The GPSLogger software produces the output file in this format (with additional columns, which are not used by the script), hence it was selected as the tool for recording the coordinates.
-2.	A regular wrist watch with seconds precision 
-3.	Pencil/Pen and paper for data recording. 
+    <li> A regular wrist watch with seconds precision </li>
+    <li>Pencil/Pen and paper for data recording </li>
+</ol>
 
 Data Collection and Upload Process
-1.	Switch On GPS logger at the start of the trip.
-2.	Align the timings of the wrist watch with the phone that has GPSLogger to the nearest minute & second. Also align (or take note of the difference in) the time between the cameras in the trip and the wrist watch for analysis and correlating images to the sightings.
-3.	 For each bird sighting, record the 
-a.	Time of sighting
-b.	Species and the number of individuals for each species
-4.	After the trip, transfer this into an excel sheet in a predefined format as provided at https://github.com/dipukp/pelagic-ebird-list-creator
-5.	Run the python script from https://github.com/dipukp/pelagic-ebird-list-creator giving the necessary inputs as documented in the above site.
-6.	The script automatically
-    a.	Identifies hotspots/cells based on GPS logger output
-    b.	Maps the time of bird sightings to the appropriate GPS location (based on actual or extrapolated GPS coordinates as appropriate, from GPS logger output) 
-    c.	Uses the protocol principles, separates out the data into multiple ebird lists.
-7.	The script outputs these lists into an ebird-importable csv output file.
-8.	Import the data into eBird at http://ebird.org/ebird/import/upload.form?theme=ebird by selecting “eBird Checklist Format”.
+<ol>
+    <li> Switch On GPS logger at the start of the trip </li>
+    <li> Align the timings of the wrist watch with the phone that has GPSLogger to the nearest minute & second. Also align (or take note of the difference in) the time between the cameras in the trip and the wrist watch for analysis and correlating images to the sightings </li>
+    <li> For each bird sighting, record the </li>
+    <ol>
+        <li> Time of sighting </li>
+        <li> Species and the number of individuals for each species </li>
+    </ol>
+    <li> After the trip, transfer this into an excel sheet in a predefined format as provided at https://github.com/dipukp/pelagic-ebird-list-creator </li>
+    <li> Run the python script from https://github.com/dipukp/pelagic-ebird-list-creator giving the necessary inputs as documented in the above site </li>
+    <li> The script automatically </li>
+    <ol>
+        <li> Identifies hotspots/cells based on GPS logger output </li>
+        <li> Maps the time of bird sightings to the appropriate GPS location (based on actual or extrapolated GPS coordinates as appropriate, from GPS logger output) </li>
+        <li> Uses the protocol principles, separates out the data into multiple ebird lists </li>
+    </ol>
+    <li> The script outputs these lists into an ebird-importable csv output file </li>
+    <li> Import the data into eBird at http://ebird.org/ebird/import/upload.form?theme=ebird by selecting “eBird Checklist Format” </li>
+</ol>
 
 Uptake of this new methodology
 ------------------------------
