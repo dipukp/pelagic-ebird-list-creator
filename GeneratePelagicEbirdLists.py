@@ -353,7 +353,7 @@ for row in finalCellDataList:
                                       ". Final count adjusted from " + str(int(row[key])) + " to " + str(finalValue) +
                                       " accordingly... Please take note!")
                                 estimateDetected = 1
-                        sheet1.write(speciescnt, columncnt, finalValue)
+                        sheet1.write(speciescnt, columncnt, int(finalValue))
                         sheet1.write(speciescnt, 0, key)
                         speciescnt += 1
         book.save("c:\\temp\\eBirdTemp.xls")
