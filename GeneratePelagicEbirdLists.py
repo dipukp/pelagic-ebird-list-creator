@@ -97,18 +97,20 @@ def InsertIntoRightCell(finalCellDataList, centrePoint, keyId, timeofSighting, s
                                         row[species] += count
                                         currentRF = row[species + "-RF"] 
                                         if(count > currentRF):
-                                                row[species + "-RF"] = GetRoundingFactor(myKey, species, count,currentRF)
+                                                row[species + "-RF"] = GetRoundingFactor(count,currentRF)
                                 else:
                                         #print (myKey + " --> " + str(timeofSighting) + ", " + str(row["Start Time"]) +
                                         #       ", " + str(row["End Time"]) + ", " + str(species) + ", " + str(count))
                                         row[species] = count
-                                        row[species + "-RF"] = GetRoundingFactor(myKey, species,count,0)
+                                        row[species + "-RF"] = GetRoundingFactor(count,0)
                                 return 1        
         return 0
 
-def GetRoundingFactor(myKey, species, count, currentRF):
+def GetRoundingFactor(count, currentRF):
         #Check for rough estimates in order of 10,50,100,500,1000,5000
         #Find the highest applicable rouding Factor
+	if not isinstance(count,(int,long)):
+		return 0
         possibleRF = 0
         for f in [10,50,100,500,1000,5000,1000000]:
                 if(count%f == 0):
@@ -116,7 +118,6 @@ def GetRoundingFactor(myKey, species, count, currentRF):
         if(possibleRF > currentRF):
                 #print("Identified a rough estimate in cell " + myKey + ": Updating estimation scale for " + str(species) + " in this cell as " + str(possibleRF))
                 return possibleRF
-
         return currentRF
 
 def HandleSighting(timeOfSighting, species, count, finalCellDataList, timePoints):
