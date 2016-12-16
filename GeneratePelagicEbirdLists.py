@@ -1,6 +1,5 @@
 import sys
 import csv
-#import time
 from datetime import datetime, timedelta, time, date
 import operator
 import xlrd
@@ -94,10 +93,14 @@ def InsertIntoRightCell(finalCellDataList, centrePoint, keyId, timeofSighting, s
                 if(row["Cell Details"] == myKey):
                         if(timeofSighting >= row["Start Time"] and timeofSighting <= row["End Time"]):
                                 if species in row:
-                                        row[species] += count
-                                        currentRF = row[species + "-RF"] 
-                                        if(count > currentRF):
-                                                row[species + "-RF"] = GetRoundingFactor(count,currentRF)
+                                        if not isinstance(count,(int,long)):
+                                                row[species] = count
+                                                row[species + "-RF"] = 0
+                                        else:
+                                                row[species] += count
+                                                currentRF = row[species + "-RF"] 
+                                                if(count > currentRF):
+                                                        row[species + "-RF"] = GetRoundingFactor(count,currentRF)
                                 else:
                                         #print (myKey + " --> " + str(timeofSighting) + ", " + str(row["Start Time"]) +
                                         #       ", " + str(row["End Time"]) + ", " + str(species) + ", " + str(count))
@@ -109,8 +112,8 @@ def InsertIntoRightCell(finalCellDataList, centrePoint, keyId, timeofSighting, s
 def GetRoundingFactor(count, currentRF):
         #Check for rough estimates in order of 10,50,100,500,1000,5000
         #Find the highest applicable rouding Factor
-	if not isinstance(count,(int,long)):
-		return 0
+        if not isinstance(count,(int,long)):
+                return 0
         possibleRF = 0
         for f in [10,50,100,500,1000,5000,1000000]:
                 if(count%f == 0):
@@ -137,12 +140,25 @@ def HandleSighting(timeOfSighting, species, count, finalCellDataList, timePoints
                                 keyId += 1
 
 if (len(sys.argv) > 4 or len(sys.argv) < 4):
-        print("\nUsage:\n\tGenerateList \"<path to loger file>\" \"<path to data sheet xls>\" \"<path to ebird file xls>\" \n")
+        print("\nUsage:\n\tGenerateList \"<path to loger file>\" \"<path to data sheet xls>\" \"<path of the output file - csv>\" \n")
         print("Sample:\n\tGenerateList 24-Sep-2011_Trip1-GPS.txt Datasheet_Trip1-24-Sep-2011.xls 2011-09-24-Trip1-ebird-lists.csv \n")
-        print("\n\tIf you got this file as part of zip file form google drive, try reading the Readme.docx file in the same file to get more detailed instructions\n")
+        print("\tIf you got this file as part of zip file form google drive, try reading the Readme.docx file in the same file to get more detailed instructions\n")
         sys.exit(1)
 
 # Start Processing
+print ("---------------------------------------------------------------")
+print "NOTES: "
+print "1. If the Datasheet contains both X and numbers for a given species, "
+print "   tne results may be wrong for that species. This case is not handled by the script."
+print "   Please ensure that the Datasheet either use only numbers or only X for a given species"
+print "2. Ensure Datasheet is similar the included samples. It needs to have a sheet named Data"
+print "3. Common mistakes in Datasheet are the time and date formats. Please follow the same"
+print "   conventions as followed in the sample"
+print "4. All the rows in the Datasheet needs to have a time value. If 2 rows have the same time,"
+print "   copy the same value to both rows"
+print "5. GPS file can have more columns than in the samples. The only mandatory columns are "
+print "   the first 3 - time, lat, lon"
+print "\n---------------------------------------------------------------"
 
 # Open the data sheet, get start time and end time
 wb = open_workbook(sys.argv[2])
@@ -151,7 +167,7 @@ dataStartTime = time(*xlrd.xldate_as_tuple(dataSheet.cell(4,3).value, wb.datemod
 dataEndTime = time(*xlrd.xldate_as_tuple(dataSheet.cell(5,3).value, wb.datemode)[3:])
 print ("Trip Start Time  : " + str(dataStartTime))
 print ("Trip End Time    : " + str(dataEndTime))
-
+print "---------------------------------------------------------------"
 # Read the logger file and generate continuous stream of GPS points for every minute from start time to end.
 # One key assumption is that the last GPS point in logger is after the last recorded sighing!
 
@@ -219,9 +235,9 @@ sortedCellList = sorted(tempCellList, key=lambda CellDetails: CellDetails.startT
 
 finalCellDataList = []
 roundingFactorList = {}
-#print("\nList candidates are:\n")
+print("List candidates are:\n")
 for cell in sortedCellList:
-        #print(str(cell.key) + " -->     Start: " + str(cell.startTime) + "     End: " + str(cell.endTime))
+        print(str(cell.key) + " -->     Start: " + str(cell.startTime) + "     End: " + str(cell.endTime))
         entry = cell.key
         if (cellList[entry].startTime == cellList[entry].endTime):
                 cellList[entry].endTime = cellList[entry].endTime + timedelta(minutes=1)
@@ -235,14 +251,14 @@ for cell in sortedCellList:
         cellData["Lon"]         = cellList[entry].roundedLon
         finalCellDataList.append(cellData)
 
-print ("\n---------------------------------------------------------------")        
-print ("\nProcessing of Data Sheet started ...\n")
+print ("---------------------------------------------------------------")        
+print ("Processing of Data Sheet started ...")
 
 # Now get details from datashee, read the species list, and for each species, find the right cell and insert the species details into that list
 state = dataSheet.cell(2,3).value
 notes = "Pelagic Survey organised by "+dataSheet.cell(8,3).value+" from "+dataSheet.cell(0,3).value+"("+dataSheet.cell(1,3).value+")"+" Weather "+dataSheet.cell(6,3).value+".Photographs available with "+dataSheet.cell(11,3).value
 allSpecies = dataSheet.cell(10,3).value
-noObservers= dataSheet.cell(9,3).value
+noObservers= str(dataSheet.cell(9,3).value).rstrip('0').rstrip('.')
 
 dataStarted = 0;
 for row_index in range(dataSheet.nrows):
@@ -288,19 +304,19 @@ speciescnt=14
 columncnt = 1
 for row in finalCellDataList:
         td = row["End Time"]-row["Start Time"]
-        # there are 7 fixed keys in every row - if there are no bird seen in that list, the count should be 7
+        # There are 7 fixed keys in every row - if there are no bird seen in that list, the count should be 7
         # such a list is decided to be discarded if effort is also less than 10 min
         if (len(row) == 7 and td.seconds < 600):
                 continue
         else:
                 columncnt += 1
-                # Hotspot sea/ocean selection
-                # Bay Of Bengal	>78.7	>5.9
-                # Arabian Sea	<77.5	>7.9
-                # Else default to Indian Ocean
-                if (float(row["Lon"]) > 78.7 and float(row["Lat"]) > 5.9):
+                # Hotspot sea/ocean selection for Indian Coast
+                # Bay Of Bengal	>78.92  >9.27
+                # Arabian Sea	<77.55	>8.07
+                # Else default to Indian Ocean (which should anyway be valid in Indina context
+                if (float(row["Lon"]) > 78.92 and float(row["Lat"]) > 9.27):
                         sheet1.write(0, columncnt, "Bay Of Bengal: "+ row["Lat"] + "N " + row["Lon"] + "E")
-                elif (float(row["Lon"]) < 77.5 and float(row["Lat"]) > 7.9):
+                elif (float(row["Lon"]) < 77.55 and float(row["Lat"]) > 8.07):
                         sheet1.write(0, columncnt, "Arabian Sea: "+ row["Lat"] + "N " + row["Lon"] + "E")
                 else:
                         sheet1.write(0, columncnt, "Indian Ocean: "+ row["Lat"] + "N " + row["Lon"] + "E")
@@ -354,7 +370,7 @@ for row in finalCellDataList:
                                       ". Final count adjusted from " + str(int(row[key])) + " to " + str(finalValue) +
                                       " accordingly... Please take note!")
                                 estimateDetected = 1
-                        sheet1.write(speciescnt, columncnt, int(finalValue))
+                        sheet1.write(speciescnt, columncnt, str(finalValue).rstrip('0').rstrip('.'))
                         sheet1.write(speciescnt, 0, key)
                         speciescnt += 1
         book.save("c:\\temp\\eBirdTemp.xls")
@@ -362,22 +378,22 @@ for row in finalCellDataList:
         tmpbook = xlrd.open_workbook("c:\\temp\\eBirdTemp.xls")
         sheet = tmpbook.sheet_by_index(0)
         ebird_csv_file = open(sys.argv[3], 'wb')
-        wr = csv.writer(ebird_csv_file, quoting=csv.QUOTE_ALL)
+        wr = csv.writer(ebird_csv_file) #, quoting=csv.QUOTE_ALL)
         for rownum in range(sheet.nrows):
                 wr.writerow(sheet.row_values(rownum))
         ebird_csv_file.close()
         
-print "\n\n... Processing of Data sheet completed !!!"
-print ("\n---------------------------------------------------------------")
+print "\n... Processing of Data sheet completed !!!"
+print ("---------------------------------------------------------------")
 if(estimateDetected == 1):
-        print "\n\n    IMPORTANT NOTE !!! "
-        print ("    ------------------\n\nNote the messages above indicating identification of rough estimate, " +
+        print "\n    IMPORTANT NOTE !!! "
+        print ("    ------------------\nNote the messages above indicating identification of rough estimate, " +
                "read \"False Precision\" section at http://ebird.org/content/ebird/news/counting-201/ for details.")
         print ("\nThis is detected when the number of birds entered during a particular sighting falls exactly " +
                "as a multipe of 10, 50, 100, 500, 1000 or 5000. If this is detected, then the count for that species " +
                "in that cell would be updated to an estimated value to avoid False Precision. \n\nIf the original number " +
                "was not a rough estimate, but actual, exact number, please update the resultant csv file manually!!!")
         print ("\n---------------------------------------------------------------")
-print "\nCompleted the generation of file that can be imported to eBird."
-print "\nPlease check the ouput file -", sys.argv[3], "- for correctness before importing.\n"
+print ("Generated the CSV file '%s' that can be now imported to eBird." % (sys.argv[3]))
+print ("Please check the contents of the file for correctness before importing.")
 print ("---------------------------------------------------------------")
