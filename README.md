@@ -156,7 +156,9 @@ Summary of the script logic:
 
 Additional notes:
 -----------------
- - Using Python installer, a windows binary has also been created, which can be run on any new Windows machine. (This make it easy for people to use this without explicitly installating python and other dependencies. This package is available at 
+ - Using Python installer, a windows binary has also been created, which can be run on any new Windows machine. (This makes it easy for people to use the script/tool without explicitly installating python and other dependencies). 
+ 
+ This package is available at 
      
           https://drive.google.com/open?id=0B7H2DYnIVIFkMzVHTHZoandtcWc
 
