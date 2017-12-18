@@ -171,14 +171,15 @@ print "---------------------------------------------------------------"
 # Read the logger file and generate continuous stream of GPS points for every minute from start time to end.
 # One key assumption is that the last GPS point in logger is after the last recorded sighing!
 
-input_file = csv.DictReader(open(sys.argv[1]))
+input_file = csv.DictReader(open(sys.argv[1], "rU")) # The 'rU' option will load files with unicode format strings without giving error on csv object.
 prevRow = None
 currentRow = {} 
 timePoints = []
 estimateDetected = 0
 for row in input_file:
         timeDiff = 0
-        dt = datetime.strptime(row["time"],"%Y-%m-%dT%H:%M:%SZ")
+        time_key = filter((lambda x: "time" in x), row.keys())[0] # Fetching the the 'time' key with unicode escape characters. E.g.: '\xef\xbb\xbftime'
+        dt = datetime.strptime(row[time_key],"%Y-%m-%dT%H:%M:%SZ")
         dt = dt.replace(second=0)
         dt = dt + timedelta(hours=5,minutes=30)
         tripStartTime = datetime.combine(dt.date(), dataStartTime)
