@@ -171,3 +171,4 @@ Additional notes:
 - The script currently generates the hotspot names considering the Indian coast only. 
 - If the same has to be used in other places in the world, the hotspot naming logic has to be tweaked based on the geographical area by giving the appropriate sea/ocean names and the relevant coordinates. 
 - Similarly, some of the configuration values used in the algorithm are fine-tuned for Indian conditions based on the previous surveys. These might need fine-tuning when porting the script to another region, where pelagic bird & birder densities are markedly different.
+- In case the script is throwing some errors or is not generating proper inputs, you can try running it with an additional argument "debug" which will generate debug data along with normal output. Share the output and input files for debugging.
