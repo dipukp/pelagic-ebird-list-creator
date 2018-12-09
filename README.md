@@ -158,7 +158,10 @@ Additional notes:
 -----------------
 - If you have a gpx file instead of a csv file (say from an external device like Garmin), this need to be converted to a simple csv file with 3 columns - time, lat and lon. There is a sample script here which converts a basic garmin GPX file into such csv file. If you have a different format of GPX file, then the script may need to be modified slightly.
 - Using Python installer, a windows binary has also been created, which can be run on any new Windows machine. (This makes it easy for people to use the script/tool without explicitly installating python and other dependencies). 
- 
+
+ The command used was:
+   pyinstaller --clean -F -n GenerateList --win-private-assemblies GeneratePelagicEbirdLists.py
+
  This package is available at 
      
           https://drive.google.com/open?id=0B7H2DYnIVIFkMzVHTHZoandtcWc
