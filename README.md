@@ -81,7 +81,7 @@ Certainly the protocol looks extremely complex on first look. However, all the c
 
 Materials:
 <ol>
-    <li> A GPS enabled Android phone with GPSLogger software installed. This can be installed free from https://play.google.com/store/apps/details?id=com.mendhak.gpslogger&hl=en </li>
+    <li> A GPS enabled Android phone with GPSLogger software installed. This can be installed free from https://play.google.com/store/apps/details?id=com.mendhak.gpslogger&hl=en (or from https://github.com/mendhak/gpslogger if it is not available on playstore). Any other app which gives output in same format also can be used. If the app used by you is not savnig in exactly the same format, you may need to covert to the supported format. See the examples for the exact format </li>
     <ol>
         <li> Configure GPSLogger to </li>
         <ol>
